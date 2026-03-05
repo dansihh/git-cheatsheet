@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Command Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e29;
+    --border: #252a38;
+    --accent: #f97316;
+    --accent2: #38bdf8;
+    --accent3: #a78bfa;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #facc15;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --cmd: #f97316;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 4rem 0 3rem;
+    position: relative;
+  }
+  .git-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--accent);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  .subtitle span { color: var(--green); }
+
+  /* SEARCH */
+  .search-wrap {
+    margin: 2rem auto;
+    max-width: 600px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    padding: 0.85rem 1rem 0.85rem 3rem;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 1rem;
+  }
+
+  /* FILTER TABS */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(249,115,22,0.08);
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 3rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+  .tag-setup    { background: rgba(56,189,248,0.15); color: var(--accent2); }
+  .tag-basic    { background: rgba(74,222,128,0.15); color: var(--green); }
+  .tag-branch   { background: rgba(167,139,250,0.15); color: var(--accent3); }
+  .tag-remote   { background: rgba(249,115,22,0.15); color: var(--accent); }
+  .tag-history  { background: rgba(250,204,21,0.15); color: var(--yellow); }
+  .tag-undo     { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag-advanced { background: rgba(249,115,22,0.15); color: var(--accent); }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* COMMAND CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card {
+    background: var(--surface);
+    padding: 1.25rem 1.5rem;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .card:hover { background: var(--surface2); }
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .cmd-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cmd);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .cmd-name::before {
+    content: '$';
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .card-desc {
+    color: var(--text);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+  .card-example {
+    background: #080a0f;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 0.6rem 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--green);
+    line-height: 1.7;
+    position: relative;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .example-label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .card-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+  }
+  .flag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: rgba(167,139,250,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(167,139,250,0.2);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  /* HIDDEN */
+  .card.hidden, .section.hidden { display: none; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .section { animation: fadeIn 0.4s ease both; }
+  .section:nth-child(2) { animation-delay: 0.05s; }
+  .section:nth-child(3) { animation-delay: 0.1s; }
+  .section:nth-child(4) { animation-delay: 0.15s; }
+  .section:nth-child(5) { animation-delay: 0.2s; }
+  .section:nth-child(6) { animation-delay: 0.25s; }
+
+  @media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="git-logo">⬡ Git Reference</div>
+    <h1>Git Commands</h1>
+    <p class="subtitle">// <span>30+</span> essential commands · examples · flags</p>
+  </header>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="Search command or keyword..." oninput="filterAll()">
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('setup', this)">Setup</button>
+    <button class="filter-btn" onclick="setFilter('basic', this)">Basic</button>
+    <button class="filter-btn" onclick="setFilter('branch', this)">Branching</button>
+    <button class="filter-btn" onclick="setFilter('remote', this)">Remote</button>
+    <button class="filter-btn" onclick="setFilter('history', this)">History</button>
+    <button class="filter-btn" onclick="setFilter('undo', this)">Undo</button>
+    <button class="filter-btn" onclick="setFilter('advanced', this)">Advanced</button>
+  </div>
+
+  <!-- SETUP -->
+  <div class="section" data-cat="setup">
+    <div class="section-header">
+      <span class="section-tag tag-setup">Setup</span>
+      <span class="section-title">Configuration & Initialization</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="setup">
+        <div class="card-top"><span class="cmd-name">git config</span></div>
+        <div class="card-desc">Set or get Git configuration values (username, email, editor, etc.). Use <code>--global</code> to apply across all repos.</div>
+        <div class="card-example"><span class="example-label">example</span>git config --global user.name "John Doe"
+git config --global user.email "john@example.com"
+git config --list</div>
+        <div class="card-flags">
+          <span class="flag">--global</span>
+          <span class="flag">--local</span>
+          <span class="flag">--system</span>
+          <span class="flag">--list</span>
+        </div>
+      </div>
+
+      <div class="card" data-cat="setup">
+        <div class="card-top"><span class="cmd-name">git init</span></div>
+        <div class="card-desc">Initialize a new, empty Git repository in the current directory. Creates a hidden <code>.git</code> folder.</div>
+        <div class="card-example"><span class="example-label">example</span>mkdir my-project && cd my-project
+git init
+# → Initialized empty Git repository in .git/</div>
+      </div>
+
+      <div class="card" data-cat="setup">
+        <div class="card-top"><span class="cmd-name">git clone</span></div>
+        <div class="card-desc">Copy an existing repository (local or remote) into a new directory, including all history and branches.</div>
+        <div class="card-example"><span class="example-label">example</span>git clone https://github.com/user/repo.git
+git clone https://github.com/user/repo.git my-folder
+git clone --depth 1 https://github.com/user/repo.git</div>
+        <div class="card-flags">
+          <span class="flag">--depth</span>
+          <span class="flag">--branch</span>
+          <span class="flag">--bare</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BASIC -->
+  <div class="section" data-cat="basic">
+    <div class="section-header">
+      <span class="section-tag tag-basic">Basic</span>
+      <span class="section-title">Staging, Committing & Status</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="basic">
+        <div class="card-top"><span class="cmd-name">git status</span></div>
+        <div class="card-desc">Show the state of the working directory and staging area. Lists tracked/untracked, modified, and staged files.</div>
+        <div class="card-example"><span class="example-label">example</span>git status
+git status -s   # short/compact format</div>
+        <div class="card-flags"><span class="flag">-s</span><span class="flag">--short</span><span class="flag">-b</span></div>
+      </div>
+
+      <div class="card" data-cat="basic">
+        <div class="card-top"><span class="cmd-name">git add</span></div>
+        <div class="card-desc">Stage file changes to be included in the next commit. Use <code>.</code> to stage everything or specify individual files.</div>
+        <div class="card-example"><span class="example-label">example</span>git add index.html         # stage one file
+git add .                   # stage all changes
+git add src/                # stage a folder
+git add -p                  # interactively pick hunks</div>
+        <div class="card-flags"><span class="flag">-A</span><span class="flag">-p</span><span class="flag">--all</span></div>
+      </div>
+
+      <div class="card" data-cat="basic">
+        <div class="card-top"><span class="cmd-name">git commit</span></div>
+        <div class="card-desc">Save staged changes to the repository with a descriptive message. Each commit is a snapshot in history.</div>
+        <div class="card-example"><span class="example-label">example</span>git commit -m "Add login page"
+git commit -am "Fix typo"   # stage + commit tracked files
+git commit --amend -m "Updated message"</div>
+        <div class="card-flags"><span class="flag">-m</span><span class="flag">-a</span><span class="flag">--amend</span><span class="flag">--no-edit</span></div>
+      </div>
+
+      <div class="card" data-cat="basic">
+        <div class="card-top"><span class="cmd-name">git diff</span></div>
+        <div class="card-desc">Show differences between working directory, staged area, and commits. Helps you see exactly what changed.</div>
+        <div class="card-example"><span class="example-label">example</span>git diff                    # unstaged changes
+git diff --staged           # staged vs last commit
+git diff main feature-branch</div>
+        <div class="card-flags"><span class="flag">--staged</span><span class="flag">--stat</span><span class="flag">--name-only</span></div>
+      </div>
+
+      <div class="card" data-cat="basic">
+        <div class="card-top"><span class="cmd-name">git rm</span></div>
+        <div class="card-desc">Remove files from the working tree and from the index. Stages the deletion for the next commit.</div>
+        <div class="card-example"><span class="example-label">example</span>git rm old-file.txt
+git rm --cached secret.env  # untrack but keep file</div>
+        <div class="card-flags"><span class="flag">--cached</span><span class="flag">-r</span><span class="flag">-f</span></div>
+      </div>
+
+      <div class="card" data-cat="basic">
+        <div class="card-top"><span class="cmd-name">git mv</span></div>
+        <div class="card-desc">Rename or move a file while keeping its Git history intact. Equivalent to <code>mv</code> + <code>git add</code> + <code>git rm</code>.</div>
+        <div class="card-example"><span class="example-label">example</span>git mv old-name.js new-name.js
+git mv src/utils.js lib/utils.js</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BRANCHING -->
+  <div class="section" data-cat="branch">
+    <div class="section-header">
+      <span class="section-tag tag-branch">Branching</span>
+      <span class="section-title">Branch & Merge Operations</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="branch">
+        <div class="card-top"><span class="cmd-name">git branch</span></div>
+        <div class="card-desc">List, create, rename, or delete branches. The starred branch is your current one.</div>
+        <div class="card-example"><span class="example-label">example</span>git branch                  # list local branches
+git branch feature/login    # create new branch
+git branch -d feature/login # delete merged branch
+git branch -D feature/login # force delete
+git branch -m old-name new-name</div>
+        <div class="card-flags"><span class="flag">-a</span><span class="flag">-d</span><span class="flag">-D</span><span class="flag">-m</span><span class="flag">-r</span></div>
+      </div>
+
+      <div class="card" data-cat="branch">
+        <div class="card-top"><span class="cmd-name">git checkout</span></div>
+        <div class="card-desc">Switch branches or restore working tree files. Use <code>-b</code> to create and switch in one step.</div>
+        <div class="card-example"><span class="example-label">example</span>git checkout main
+git checkout -b feature/nav  # create + switch
+git checkout -- index.html   # discard file changes</div>
+        <div class="card-flags"><span class="flag">-b</span><span class="flag">--</span><span class="flag">-f</span></div>
+      </div>
+
+      <div class="card" data-cat="branch">
+        <div class="card-top"><span class="cmd-name">git switch</span></div>
+        <div class="card-desc">Modern replacement for <code>git checkout</code> focused on branch switching. Cleaner and more intuitive.</div>
+        <div class="card-example"><span class="example-label">example</span>git switch main
+git switch -c feature/dashboard   # create + switch
+git switch -                      # switch to previous branch</div>
+        <div class="card-flags"><span class="flag">-c</span><span class="flag">--detach</span><span class="flag">-</span></div>
+      </div>
+
+      <div class="card" data-cat="branch">
+        <div class="card-top"><span class="cmd-name">git merge</span></div>
+        <div class="card-desc">Integrate changes from one branch into another. Creates a merge commit unless fast-forwarded.</div>
+        <div class="card-example"><span class="example-label">example</span>git checkout main
+git merge feature/login
+git merge --no-ff feature/nav  # always create merge commit
+git merge --abort               # cancel an in-progress merge</div>
+        <div class="card-flags"><span class="flag">--no-ff</span><span class="flag">--squash</span><span class="flag">--abort</span></div>
+      </div>
+
+      <div class="card" data-cat="branch">
+        <div class="card-top"><span class="cmd-name">git rebase</span></div>
+        <div class="card-desc">Reapply commits on top of another base. Creates a cleaner, linear history compared to merging.</div>
+        <div class="card-example"><span class="example-label">example</span>git rebase main             # rebase current branch onto main
+git rebase -i HEAD~3        # interactive: squash/edit last 3 commits
+git rebase --abort          # cancel rebase</div>
+        <div class="card-flags"><span class="flag">-i</span><span class="flag">--onto</span><span class="flag">--abort</span><span class="flag">--continue</span></div>
+      </div>
+
+      <div class="card" data-cat="branch">
+        <div class="card-top"><span class="cmd-name">git stash</span></div>
+        <div class="card-desc">Temporarily save uncommitted changes to a stack so you can switch context without losing work.</div>
+        <div class="card-example"><span class="example-label">example</span>git stash                   # stash current work
+git stash pop               # apply + remove top stash
+git stash list              # see all stashes
+git stash apply stash@{1}   # apply specific stash</div>
+        <div class="card-flags"><span class="flag">pop</span><span class="flag">list</span><span class="flag">drop</span><span class="flag">apply</span><span class="flag">-u</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- REMOTE -->
+  <div class="section" data-cat="remote">
+    <div class="section-header">
+      <span class="section-tag tag-remote">Remote</span>
+      <span class="section-title">Remote Repository Operations</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="remote">
+        <div class="card-top"><span class="cmd-name">git remote</span></div>
+        <div class="card-desc">Manage connections to remote repositories. Add, remove, rename, or inspect remote URLs.</div>
+        <div class="card-example"><span class="example-label">example</span>git remote -v               # list remotes with URLs
+git remote add origin https://github.com/user/repo.git
+git remote remove origin
+git remote rename origin upstream</div>
+        <div class="card-flags"><span class="flag">-v</span><span class="flag">add</span><span class="flag">remove</span><span class="flag">rename</span></div>
+      </div>
+
+      <div class="card" data-cat="remote">
+        <div class="card-top"><span class="cmd-name">git fetch</span></div>
+        <div class="card-desc">Download changes from a remote without merging into your working branch. Safe way to inspect remote changes.</div>
+        <div class="card-example"><span class="example-label">example</span>git fetch origin
+git fetch --all             # fetch all remotes
+git fetch origin main       # fetch specific branch</div>
+        <div class="card-flags"><span class="flag">--all</span><span class="flag">--prune</span><span class="flag">--tags</span></div>
+      </div>
+
+      <div class="card" data-cat="remote">
+        <div class="card-top"><span class="cmd-name">git pull</span></div>
+        <div class="card-desc">Fetch and immediately merge changes from the remote. Equivalent to <code>git fetch</code> + <code>git merge</code>.</div>
+        <div class="card-example"><span class="example-label">example</span>git pull
+git pull origin main
+git pull --rebase origin main  # rebase instead of merge</div>
+        <div class="card-flags"><span class="flag">--rebase</span><span class="flag">--no-ff</span><span class="flag">--ff-only</span></div>
+      </div>
+
+      <div class="card" data-cat="remote">
+        <div class="card-top"><span class="cmd-name">git push</span></div>
+        <div class="card-desc">Upload local commits to a remote repository. Use <code>-u</code> to set upstream tracking for a branch.</div>
+        <div class="card-example"><span class="example-label">example</span>git push origin main
+git push -u origin feature/nav  # set upstream
+git push --force-with-lease     # safer force push
+git push origin --delete old-branch</div>
+        <div class="card-flags"><span class="flag">-u</span><span class="flag">--force</span><span class="flag">--force-with-lease</span><span class="flag">--tags</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="section" data-cat="history">
+    <div class="section-header">
+      <span class="section-tag tag-history">History</span>
+      <span class="section-title">Viewing & Searching History</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="history">
+        <div class="card-top"><span class="cmd-name">git log</span></div>
+        <div class="card-desc">Show commit history. One of the most powerful commands — use flags to customize the output format.</div>
+        <div class="card-example"><span class="example-label">example</span>git log
+git log --oneline --graph --decorate
+git log --author="John" --since="2 weeks ago"
+git log -p index.html       # show patch for a file</div>
+        <div class="card-flags"><span class="flag">--oneline</span><span class="flag">--graph</span><span class="flag">--decorate</span><span class="flag">--author</span><span class="flag">-p</span><span class="flag">--stat</span></div>
+      </div>
+
+      <div class="card" data-cat="history">
+        <div class="card-top"><span class="cmd-name">git show</span></div>
+        <div class="card-desc">Display detailed information about a specific commit: metadata, diff, and changed files.</div>
+        <div class="card-example"><span class="example-label">example</span>git show                    # show last commit
+git show a3f1b2c            # show specific commit
+git show HEAD~2             # show 2 commits ago</div>
+        <div class="card-flags"><span class="flag">--stat</span><span class="flag">--name-only</span></div>
+      </div>
+
+      <div class="card" data-cat="history">
+        <div class="card-top"><span class="cmd-name">git blame</span></div>
+        <div class="card-desc">Show who last modified each line of a file, with the commit hash and timestamp. Great for debugging.</div>
+        <div class="card-example"><span class="example-label">example</span>git blame index.html
+git blame -L 10,25 app.js  # blame specific line range</div>
+        <div class="card-flags"><span class="flag">-L</span><span class="flag">-e</span><span class="flag">-w</span></div>
+      </div>
+
+      <div class="card" data-cat="history">
+        <div class="card-top"><span class="cmd-name">git grep</span></div>
+        <div class="card-desc">Search for a pattern (string or regex) through tracked files in the repository, like <code>grep</code> but Git-aware.</div>
+        <div class="card-example"><span class="example-label">example</span>git grep "TODO"
+git grep -n "console.log"   # show line numbers
+git grep "api_key" HEAD~5   # search in older commit</div>
+        <div class="card-flags"><span class="flag">-n</span><span class="flag">-i</span><span class="flag">-l</span><span class="flag">--count</span></div>
+      </div>
+
+      <div class="card" data-cat="history">
+        <div class="card-top"><span class="cmd-name">git tag</span></div>
+        <div class="card-desc">Mark specific commits as important milestones (like v1.0.0). Annotated tags include a message.</div>
+        <div class="card-example"><span class="example-label">example</span>git tag v1.0.0
+git tag -a v2.0.0 -m "Major release"
+git tag -l                  # list all tags
+git push origin --tags      # push tags to remote</div>
+        <div class="card-flags"><span class="flag">-a</span><span class="flag">-m</span><span class="flag">-l</span><span class="flag">-d</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- UNDO -->
+  <div class="section" data-cat="undo">
+    <div class="section-header">
+      <span class="section-tag tag-undo">Undo</span>
+      <span class="section-title">Undoing & Fixing Mistakes</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="undo">
+        <div class="card-top"><span class="cmd-name">git restore</span></div>
+        <div class="card-desc">Discard changes in the working directory or unstage files. Modern replacement for parts of <code>git checkout</code>.</div>
+        <div class="card-example"><span class="example-label">example</span>git restore index.html      # discard working dir changes
+git restore --staged app.js # unstage a file
+git restore --source=HEAD~2 config.js</div>
+        <div class="card-flags"><span class="flag">--staged</span><span class="flag">--source</span><span class="flag">--worktree</span></div>
+      </div>
+
+      <div class="card" data-cat="undo">
+        <div class="card-top"><span class="cmd-name">git revert</span></div>
+        <div class="card-desc">Create a new commit that undoes the changes of a specific commit. Safe — doesn't rewrite history.</div>
+        <div class="card-example"><span class="example-label">example</span>git revert a3f1b2c
+git revert HEAD             # revert last commit
+git revert HEAD~3..HEAD     # revert last 3 commits</div>
+        <div class="card-flags"><span class="flag">--no-commit</span><span class="flag">-m</span></div>
+      </div>
+
+      <div class="card" data-cat="undo">
+        <div class="card-top"><span class="cmd-name">git reset</span></div>
+        <div class="card-desc">Move the branch pointer back to an earlier commit. Three modes: <code>--soft</code>, <code>--mixed</code>, <code>--hard</code>.</div>
+        <div class="card-example"><span class="example-label">example</span>git reset --soft HEAD~1     # undo commit, keep staged
+git reset HEAD~1            # undo commit, unstage
+git reset --hard HEAD~1     # undo commit + discard changes ⚠️</div>
+        <div class="card-flags"><span class="flag">--soft</span><span class="flag">--mixed</span><span class="flag">--hard</span></div>
+      </div>
+
+      <div class="card" data-cat="undo">
+        <div class="card-top"><span class="cmd-name">git clean</span></div>
+        <div class="card-desc">Remove untracked files and directories from the working tree. Use <code>-n</code> first to preview what will be deleted.</div>
+        <div class="card-example"><span class="example-label">example</span>git clean -n                # dry run – preview
+git clean -f                # force delete untracked files
+git clean -fd               # also remove untracked dirs</div>
+        <div class="card-flags"><span class="flag">-n</span><span class="flag">-f</span><span class="flag">-d</span><span class="flag">-x</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ADVANCED -->
+  <div class="section" data-cat="advanced">
+    <div class="section-header">
+      <span class="section-tag tag-advanced">Advanced</span>
+      <span class="section-title">Power User Commands</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card" data-cat="advanced">
+        <div class="card-top"><span class="cmd-name">git cherry-pick</span></div>
+        <div class="card-desc">Apply a specific commit from one branch onto the current branch. Useful for grabbing a single fix without merging all changes.</div>
+        <div class="card-example"><span class="example-label">example</span>git cherry-pick a3f1b2c
+git cherry-pick a3f..b5c    # range of commits
+git cherry-pick --no-commit a3f1b2c</div>
+        <div class="card-flags"><span class="flag">--no-commit</span><span class="flag">-x</span><span class="flag">--abort</span></div>
+      </div>
+
+      <div class="card" data-cat="advanced">
+        <div class="card-top"><span class="cmd-name">git bisect</span></div>
+        <div class="card-desc">Use binary search to find which commit introduced a bug. Git checks out commits until the bad one is found.</div>
+        <div class="card-example"><span class="example-label">example</span>git bisect start
+git bisect bad              # current commit is broken
+git bisect good v1.0.0      # v1.0.0 was working
+# → test, then: git bisect good / bad
+git bisect reset            # when done</div>
+        <div class="card-flags"><span class="flag">start</span><span class="flag">good</span><span class="flag">bad</span><span class="flag">reset</span></div>
+      </div>
+
+      <div class="card" data-cat="advanced">
+        <div class="card-top"><span class="cmd-name">git reflog</span></div>
+        <div class="card-desc">Show a log of all HEAD movements — even from resets, rebases, checkouts. Your safety net to recover lost commits.</div>
+        <div class="card-example"><span class="example-label">example</span>git reflog
+git reflog show feature/nav
+# find the SHA and restore:
+git checkout -b recovered abc1234</div>
+      </div>
+
+      <div class="card" data-cat="advanced">
+        <div class="card-top"><span class="cmd-name">git worktree</span></div>
+        <div class="card-desc">Check out multiple branches simultaneously in different directories from a single repository.</div>
+        <div class="card-example"><span class="example-label">example</span>git worktree add ../hotfix hotfix/login
+git worktree list
+git worktree remove ../hotfix</div>
+        <div class="card-flags"><span class="flag">add</span><span class="flag">list</span><span class="flag">remove</span></div>
+      </div>
+
+      <div class="card" data-cat="advanced">
+        <div class="card-top"><span class="cmd-name">git submodule</span></div>
+        <div class="card-desc">Embed another Git repository inside your repo as a sub-project at a fixed commit.</div>
+        <div class="card-example"><span class="example-label">example</span>git submodule add https://github.com/user/lib.git
+git submodule update --init --recursive
+git submodule foreach git pull origin main</div>
+        <div class="card-flags"><span class="flag">add</span><span class="flag">update</span><span class="flag">foreach</span><span class="flag">status</span></div>
+      </div>
+
+      <div class="card" data-cat="advanced">
+        <div class="card-top"><span class="cmd-name">git archive</span></div>
+        <div class="card-desc">Export a snapshot of the repository as a tar or zip archive without the <code>.git</code> history.</div>
+        <div class="card-example"><span class="example-label">example</span>git archive --format=zip HEAD > release.zip
+git archive --format=tar.gz main > project.tar.gz</div>
+        <div class="card-flags"><span class="flag">--format</span><span class="flag">--prefix</span><span class="flag">--output</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    crafted for git learners · all ~30 essential commands · use <kbd style="background:#1a1e29;border:1px solid #252a38;padding:1px 6px;border-radius:3px;font-family:JetBrains Mono">Ctrl+F</kbd> or the search above to find fast
+  </footer>
+
+</div>
+
+<script>
+let activeFilter = 'all';
+
+function setFilter(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterAll();
+}
+
+function filterAll() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+
+  document.querySelectorAll('.section').forEach(section => {
+    const scat = section.dataset.cat;
+    let sectionVisible = false;
+
+    section.querySelectorAll('.card').forEach(card => {
+      const ccat = card.dataset.cat;
+      const text = card.innerText.toLowerCase();
+      const catMatch = activeFilter === 'all' || ccat === activeFilter;
+      const searchMatch = !q || text.includes(q);
+      const show = catMatch && searchMatch;
+      card.classList.toggle('hidden', !show);
+      if (show) sectionVisible = true;
+    });
+
+    section.classList.toggle('hidden', !sectionVisible);
+  });
+}
+</script>
+</body>
+</html>
